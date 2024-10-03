@@ -1,7 +1,9 @@
-import {View, Text, Image, TouchableOpacity} from 'react-native';
+import {View, Text, TouchableOpacity} from 'react-native';
 import React, {useState} from 'react';
 import {icons} from '../constants';
 import {Video, ResizeMode} from 'expo-av';
+import Loading from './Loading';
+import {Image} from 'expo-image';
 
 const VideoCard = ({
   video: {
@@ -10,7 +12,9 @@ const VideoCard = ({
     video,
     creator: {username, avatar},
   },
+  onPressMenu,
 }) => {
+  const [initialLoading, setInitialLoading] = useState(false);
   const [play, setPlay] = useState(false);
   return (
     <View className="px-4 mb-14 items-center">
@@ -20,7 +24,7 @@ const VideoCard = ({
             <Image
               source={{uri: avatar}}
               className="w-full h-full rounded-lg"
-              resizeMode="contain"
+              contentFit="contain"
             />
           </View>
           <View className="justify-center flex-1 ml-3 gap-y-1">
@@ -32,37 +36,58 @@ const VideoCard = ({
         </View>
 
         <View className="pt-2">
-          <Image source={icons.menu} className="w-5 h-5" resizeMode="contain" />
+          <TouchableOpacity onPress={onPressMenu}>
+            <Image
+              source={icons.menu}
+              className="w-5 h-5"
+              contentFit="contain"
+            />
+          </TouchableOpacity>
         </View>
       </View>
       {play ? (
-        <Video
-          source={{uri: video}}
-          className="w-full h-60 rounded-xl "
-          resizeMode={ResizeMode.CONTAIN}
-          useNativeControls
-          shouldPlay
-          onPlaybackStatusUpdate={status => {
-            if (status.didJustFinish) {
-              setPlay(false);
-            }
-          }}
-        />
+        <View className="w-full h-60 rounded-xl relative justify-center items-center">
+          {initialLoading && <Loading />}
+          <Video
+            source={{uri: video}}
+            resizeMode={ResizeMode.CONTAIN}
+            className="w-full h-full rounded-xl mt-5 bg-white/10"
+            useNativeControls
+            shouldPlay
+            onLoadStart={() => setInitialLoading(true)}
+            onLoadEnd={() => setInitialLoading(false)}
+            onError={() => setInitialLoading(false)}
+            onPlaybackStatusUpdate={status => {
+              if (status.didJustFinish) {
+                setPlay(false);
+              }
+            }}
+          />
+        </View>
       ) : (
         <TouchableOpacity
           activeOpacity={0.7}
           className="w-full h-60 rounded-xl relative justify-center items-center"
           onPress={() => setPlay(true)}>
-          <Image
-            className="w-full h-full rounded-xl mt-5"
-            source={{uri: thumbnail}}
-            resizeMode="cover"
-          />
-          <Image
-            source={icons.play}
-            className="w-12 h-12 absolute"
-            resizeMode="contain"
-          />
+          <View className="w-full h-full justify-center items-center ">
+            {initialLoading && <Loading />}
+            <Image
+              className="w-full h-full rounded-xl mt-5 bg-white/10"
+              source={{uri: thumbnail}}
+              contentFit="cover"
+              onLoadStart={() => setInitialLoading(true)}
+              onLoadEnd={() => setInitialLoading(false)}
+              onError={() => setInitialLoading(false)}
+            />
+          </View>
+
+          {!initialLoading && (
+            <Image
+              source={icons.play}
+              className="w-12 h-12 absolute"
+              contentFit="contain"
+            />
+          )}
         </TouchableOpacity>
       )}
     </View>

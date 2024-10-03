@@ -1,40 +1,44 @@
 import {FlatList, Image, RefreshControl, Text, View} from 'react-native';
-import React, {useState} from 'react';
+import React from 'react';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {images} from '../../constants';
 import SearchInput from '../../components/SearchInput';
 import Trending from '../../components/Trending';
 import EmptyState from '../../components/EmptyState';
-import {getAllPosts, getLatestPosts} from '../../lib/appwrite';
+import {getAllAndLatestPosts} from '../../lib/appwrite';
 import useAppWrite from '../../lib/useAppwrite';
 import VideoCard from '../../components/VideoCard';
+import {useGlobalContext} from '../../context/GlobalProvider';
+import {CustomBottomSheet} from '../../components/CustomBottomSheet';
+import useCustomBottomSheet from '../../lib/useCustomBottomSheet';
+import ItemMenu from '../../components/ItemMenu';
 
 const Home = () => {
-  const {data: posts, refetch} = useAppWrite(getAllPosts);
-  const {data: latestPosts} = useAppWrite(getLatestPosts);
-  const [refreshing, setRefreshing] = useState(false);
-
-  const onRefresh = async () => {
-    setRefreshing(true);
-    await refetch();
-    setRefreshing(false);
-  };
+  // console.log('render home again');
+  const {user} = useGlobalContext();
+  const {data: posts, refetch, refreshing} = useAppWrite(getAllAndLatestPosts);
+  const {customBottomSheetRef, showBottomSheet} = useCustomBottomSheet();
 
   return (
-    <SafeAreaView className="bg-primary h-full">
+    <SafeAreaView
+      className="bg-primary h-full"
+      edges={['top', 'left', 'right']}>
       <FlatList
-        data={posts}
+        data={posts ? posts.all : []}
+        showsVerticalScrollIndicator={false}
         keyExtractor={item => item.$id}
-        renderItem={({item}) => <VideoCard video={item} />}
+        renderItem={({item}) => (
+          <VideoCard video={item} onPressMenu={() => showBottomSheet(item)} />
+        )}
         ListHeaderComponent={() => (
-          <View className="my-6 px-4 space-y-6">
+          <View className="my-4 px-4 space-y-6">
             <View className="justify-between items-start flex-row mb-6">
               <View>
                 <Text className="font-pmedium text-sm text-gray-100">
-                  Welcome Back
+                  Welcome Back,
                 </Text>
                 <Text className="text-2xl font-psemibold text-white">
-                  Suantony
+                  {user?.username}
                 </Text>
               </View>
               <View className="mt-1.5">
@@ -52,8 +56,7 @@ const Home = () => {
               <Text className="text-gray-100 text-base font-pregular mb-3">
                 Latest Videos
               </Text>
-
-              <Trending posts={latestPosts ?? []} />
+              <Trending posts={posts ? posts.latest : []} />
             </View>
           </View>
         )}
@@ -61,12 +64,17 @@ const Home = () => {
           <EmptyState
             title="No Videos Found"
             subtitle="Be the first one to upload the video"
+            isLoading={posts === null}
           />
         )}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+          <RefreshControl refreshing={refreshing} onRefresh={refetch} />
         }
       />
+
+      <CustomBottomSheet ref={customBottomSheetRef}>
+        {({item}) => <ItemMenu selectedItem={item} />}
+      </CustomBottomSheet>
     </SafeAreaView>
   );
 };

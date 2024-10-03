@@ -1,59 +1,49 @@
-import {ScrollView, Image, View, Text} from 'react-native';
-import {SafeAreaView} from 'react-native-safe-area-context';
-import {images} from '../constants';
-import CustomButton from '../components/CustomButton';
-import {StatusBar} from 'expo-status-bar';
-import {Redirect, router} from 'expo-router';
+/* eslint-disable react-hooks/exhaustive-deps */
+import {SplashScreen, useRouter} from 'expo-router';
 import {useGlobalContext} from '../context/GlobalProvider';
+import {useEffect, useRef} from 'react';
+import {useFonts} from 'expo-font';
+import {Animated} from 'react-native';
+
+SplashScreen.preventAutoHideAsync();
 
 export default function App() {
-  const {isLoading, isLoggedIn} = useGlobalContext();
+  const fadeAnim = useRef(new Animated.Value(1)).current;
+  const router = useRouter();
+  const [fontsLoaded, error] = useFonts({
+    'Poppins-Black': require('../assets/fonts/Poppins-Black.ttf'),
+    'Poppins-Bold': require('../assets/fonts/Poppins-Bold.ttf'),
+    'Poppins-ExtraBold': require('../assets/fonts/Poppins-ExtraBold.ttf'),
+    'Poppins-ExtraLight': require('../assets/fonts/Poppins-ExtraLight.ttf'),
+    'Poppins-Light': require('../assets/fonts/Poppins-Light.ttf'),
+    'Poppins-Medium': require('../assets/fonts/Poppins-Medium.ttf'),
+    'Poppins-Regular': require('../assets/fonts/Poppins-Regular.ttf'),
+    'Poppins-SemiBold': require('../assets/fonts/Poppins-SemiBold.ttf'),
+    'Poppins-Thin': require('../assets/fonts/Poppins-Thin.ttf'),
+  });
+  const {isLoggedIn} = useGlobalContext();
 
-  if (!isLoading && isLoggedIn) return <Redirect href="/home" />;
+  useEffect(() => {
+    if (error) throw error;
 
-  return (
-    <SafeAreaView className="bg-primary h-full">
-      <ScrollView contentContainerStyle={{height: '100%'}}>
-        <View className="w-full justify-center items-center h-[85vh] px-4">
-          <Image
-            source={images.logo}
-            className="w-[130px] h-[84px]"
-            resizeMode="contain"
-          />
-          <Image
-            source={images.cards}
-            className="max-w-[380px] max-h-[300px] w-full"
-            resizeMode="contain"
-          />
+    if (isLoggedIn === null || !fontsLoaded) return;
 
-          <View className="relative mt-5">
-            <Text className="text-2xl text-white font-bold text-center mx-8">
-              Discover Endless Possibilities with{' '}
-              <Text className="text-secondary-200">Aora</Text>
-            </Text>
-            <Image
-              source={images.path}
-              className="w-[136px] h-[15px] absolute -bottom-2 -right-2"
-              resizeMode="contain"
-            />
-          </View>
+    if (isLoggedIn) {
+      router.replace('/home');
+    } else {
+      router.replace('/onboarding');
+    }
 
-          <Text className="mt-7 text-gray-100 text-center font-pregular text-sm">
-            Where creativity meets inovation embark on a journey of limitless
-            exploration with Aora
-          </Text>
+    Animated.timing(fadeAnim, {
+      toValue: 0,
+      duration: 500,
+      useNativeDriver: true,
+    }).start(() => {
+      SplashScreen.hideAsync();
+    });
+  }, [isLoggedIn, fontsLoaded, error]);
 
-          <CustomButton
-            title="Continue with Email"
-            handlePress={() => {
-              router.push('/sign-in');
-            }}
-            containerStyle="mt-7 w-full"
-          />
-
-          <StatusBar backgroundColor="#161622" style="light" />
-        </View>
-      </ScrollView>
-    </SafeAreaView>
-  );
+  if (!fontsLoaded && !error) {
+    return null;
+  }
 }

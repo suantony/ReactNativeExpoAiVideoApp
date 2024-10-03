@@ -4,7 +4,7 @@ import {TouchableOpacity} from 'react-native';
 import {icons} from '../constants';
 import {router, usePathname} from 'expo-router';
 
-const SearchInput = ({initialQuery}) => {
+const SearchInput = ({initialQuery, placeholder}) => {
   const pathname = usePathname();
   const [query, setQuery] = useState(initialQuery || '');
   return (
@@ -12,19 +12,23 @@ const SearchInput = ({initialQuery}) => {
       <TextInput
         className="text-base mt-0.5 text-white flex-1 font-pregular"
         value={query}
-        placeholder="Search"
+        placeholder={placeholder ? placeholder : 'Search'}
         placeholderTextColor="#CDCDE0"
         onChangeText={e => setQuery(e)}></TextInput>
 
       <TouchableOpacity
         onPress={() => {
-          if (!query) {
+          if (!query && !pathname.startsWith('/bookmark')) {
             return Alert.alert(
               'Missing query',
               'Please input something to search results across databse',
             );
           }
-          if (pathname.startsWith('/search')) router.setParams({query});
+          if (
+            pathname.startsWith('/search') ||
+            pathname.startsWith('/bookmark')
+          )
+            router.setParams({query});
           else router.push(`/search/${query}`);
         }}>
         <Image source={icons.search} className="w-5 h-5" resizeMode="contain" />
