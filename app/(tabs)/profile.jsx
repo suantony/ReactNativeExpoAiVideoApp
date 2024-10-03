@@ -1,5 +1,5 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import {FlatList, Image, Text, View} from 'react-native';
+import {FlatList, Image, View} from 'react-native';
 import React from 'react';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import EmptyState from '../../components/EmptyState';

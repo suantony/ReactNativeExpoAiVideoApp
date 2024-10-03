@@ -1,5 +1,5 @@
 import {FlatList, TouchableOpacity, Image} from 'react-native';
-import React, {useEffect, useState} from 'react';
+import React, {useState} from 'react';
 import * as Animatable from 'react-native-animatable';
 import {icons} from '../constants';
 import {Video, ResizeMode} from 'expo-av';

@@ -1,14 +1,15 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import {SplashScreen, useRouter} from 'expo-router';
 import {useGlobalContext} from '../context/GlobalProvider';
-import {useEffect, useRef} from 'react';
+import {useEffect} from 'react';
 import {useFonts} from 'expo-font';
-import {Animated} from 'react-native';
+import {View} from 'react-native';
+import {Image} from 'expo-image';
+import {images} from '../constants';
 
 SplashScreen.preventAutoHideAsync();
 
 export default function App() {
-  const fadeAnim = useRef(new Animated.Value(1)).current;
   const router = useRouter();
   const [fontsLoaded, error] = useFonts({
     'Poppins-Black': require('../assets/fonts/Poppins-Black.ttf'),
@@ -33,17 +34,20 @@ export default function App() {
     } else {
       router.replace('/onboarding');
     }
-
-    Animated.timing(fadeAnim, {
-      toValue: 0,
-      duration: 500,
-      useNativeDriver: true,
-    }).start(() => {
-      SplashScreen.hideAsync();
-    });
+    SplashScreen.hideAsync();
   }, [isLoggedIn, fontsLoaded, error]);
 
   if (!fontsLoaded && !error) {
     return null;
   }
+
+  return (
+    <View className="w-full h-full bg-primary">
+      <Image
+        contentFit="contain"
+        source={images.splashScreen}
+        className="h-full w-full"
+      />
+    </View>
+  );
 }
